@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePetStore, getSpeciesData, PERSONALITY_INFO } from '@/store/petStore';
+import { usePetStore, getSpeciesData, PERSONALITY_INFO, getEvolution, EVOLUTION_TIER_INFO } from '@/store/petStore';
+import { useState, useEffect, useRef } from 'react';
 
 const STAGE_EMOJIS: Record<string, Record<string, string>> = {
   meowchi: { egg: '🥚', baby: '🐱', child: '😺', teen: '😼', adult: '🐈', senior: '🐈‍⬛' },
@@ -20,17 +21,63 @@ const getMood = (hunger: number, happiness: number, health: number, energy: numb
 };
 
 export default function PetDisplay() {
-  const { species, stage, hunger, happiness, health, energy, isSleeping, isDead, name, poops, isSick, personality } = usePetStore();
+  const { species, stage, hunger, happiness, health, energy, hygiene, isSleeping, isDead, name, poops, isSick, personality, bond } = usePetStore();
   const speciesData = getSpeciesData(species);
   const personalityInfo = PERSONALITY_INFO[personality];
+  const avgStats = (hunger + happiness + health + hygiene + energy) / 5;
+  const evolution = getEvolution(species, stage, bond, avgStats, personality);
+  const tierInfo = EVOLUTION_TIER_INFO[evolution.tier];
 
-  const petEmoji = STAGE_EMOJIS[species]?.[stage] || speciesData.emoji;
+  // Track evolution changes for animation
+  const prevTier = useRef(evolution.tier);
+  const [showEvolveFlash, setShowEvolveFlash] = useState(false);
+
+  useEffect(() => {
+    if (evolution.tier !== prevTier.current && evolution.tier !== 'base') {
+      setShowEvolveFlash(true);
+      const t = setTimeout(() => setShowEvolveFlash(false), 2000);
+      prevTier.current = evolution.tier;
+      return () => clearTimeout(t);
+    }
+    prevTier.current = evolution.tier;
+  }, [evolution.tier]);
+
+  // Use evolution emoji for non-egg/baby stages, otherwise stage emoji
+  const petEmoji = (stage === 'egg' || stage === 'baby')
+    ? (STAGE_EMOJIS[species]?.[stage] || speciesData.emoji)
+    : evolution.emoji;
+
   const mood = getMood(hunger, happiness, health, energy, isSick);
-
   const petSize = stage === 'egg' ? 'text-7xl' : stage === 'baby' ? 'text-8xl' : 'text-9xl';
 
   return (
     <div className="relative flex flex-col items-center justify-center py-6 min-h-[280px]">
+      {/* Evolution flash */}
+      <AnimatePresence>
+        {showEvolveFlash && (
+          <motion.div
+            className="absolute inset-0 z-10 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-accent/20 rounded-3xl"
+              animate={{ opacity: [0, 0.6, 0] }}
+              transition={{ duration: 2 }}
+            />
+            <motion.p
+              className="font-fredoka text-2xl font-bold text-accent z-20"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.3, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 2 }}
+            >
+              ✨ EVOLVED! ✨
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Poops */}
       <AnimatePresence>
         {Array.from({ length: poops }).map((_, i) => (
@@ -40,10 +87,7 @@ export default function PetDisplay() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0 }}
             className="absolute text-3xl"
-            style={{
-              left: `${20 + i * 15}%`,
-              bottom: '10%',
-            }}
+            style={{ left: `${20 + i * 15}%`, bottom: '10%' }}
           >
             💩
           </motion.div>
@@ -58,6 +102,17 @@ export default function PetDisplay() {
           transition={{ duration: 1, repeat: Infinity }}
         >
           🤒 SICK
+        </motion.div>
+      )}
+
+      {/* Aura particles for evolved pets */}
+      {evolution.aura && !isDead && !isSleeping && (
+        <motion.div
+          className="absolute top-1/4 text-2xl select-none pointer-events-none"
+          animate={{ y: [-10, -25, -10], opacity: [0.4, 1, 0.4], rotate: [0, 15, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {evolution.aura}
         </motion.div>
       )}
 
@@ -120,11 +175,18 @@ export default function PetDisplay() {
         </motion.div>
       )}
 
-      {/* Name + personality */}
+      {/* Name + personality + evolution */}
       <p className="mt-2 font-fredoka text-lg text-foreground font-semibold">{name}</p>
-      <span className="text-xs text-muted-foreground font-nunito">
-        {personalityInfo.emoji} {personalityInfo.name}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground font-nunito">
+          {personalityInfo.emoji} {personalityInfo.name}
+        </span>
+        {evolution.tier !== 'base' && (
+          <span className={`text-[10px] font-fredoka font-bold ${tierInfo.color} px-2 py-0.5 rounded-full bg-muted`}>
+            {evolution.aura} {evolution.name}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
