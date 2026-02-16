@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { usePetStore, Species, Difficulty, PERSONALITY_INFO } from '@/store/petStore';
+import { usePetStore, Species, Difficulty, PERSONALITY_INFO, Personality } from '@/store/petStore';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const SPECIES = [
   { id: 'meowchi' as Species, emoji: '🐱', name: 'Meowchi', desc: 'Independent & playful', trait: '9 lives!' },
@@ -16,12 +17,21 @@ const DIFFICULTIES: { id: Difficulty; name: string; emoji: string; desc: string 
   { id: 'nightmare', name: 'Nightmare', emoji: '💀', desc: 'Instant death events!' },
 ];
 
+const ALL_PERSONALITIES: Personality[] = ['lazy', 'picky_eater', 'messy', 'anxious', 'athletic', 'sensitive', 'independent'];
+
 export default function AdoptPage() {
   const [selected, setSelected] = useState<Species | null>(null);
   const [petName, setPetName] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const adopt = usePetStore((s) => s.adopt);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Redirect to auth if not logged in
+  if (!loading && !user) {
+    navigate('/auth');
+    return null;
+  }
 
   const handleAdopt = () => {
     if (!selected || !petName.trim()) return;
@@ -88,6 +98,22 @@ export default function AdoptPage() {
               </motion.button>
             ))}
           </div>
+        </div>
+
+        {/* Personality preview */}
+        <div className="mb-6">
+          <p className="font-fredoka text-sm font-semibold text-foreground mb-2 text-center">Possible Personalities</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {ALL_PERSONALITIES.map(p => {
+              const info = PERSONALITY_INFO[p];
+              return (
+                <span key={p} className="px-2 py-1 rounded-full bg-muted text-[10px] font-nunito font-semibold text-muted-foreground">
+                  {info.emoji} {info.name}
+                </span>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center mt-1 font-nunito">Your pet will get a random personality!</p>
         </div>
 
         {/* Name + adopt */}

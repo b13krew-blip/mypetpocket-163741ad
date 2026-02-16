@@ -60,7 +60,7 @@ export default function FeedModal({ open, onClose }: Props) {
                     <span className="text-2xl">{food.emoji}</span>
                     <span className="text-xs font-nunito font-semibold text-foreground">{food.name}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {food.cost === 0 ? 'Free' : `💰${food.cost}`}
+                      💰{food.cost}
                     </span>
                     <span className="text-[10px] text-primary font-semibold">+{food.hunger}🍔</span>
                   </motion.button>
