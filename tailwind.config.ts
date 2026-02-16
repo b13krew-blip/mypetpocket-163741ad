@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        fredoka: ["Fredoka", "sans-serif"],
+        nunito: ["Nunito", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +61,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "pet-bg": "hsl(var(--pet-bg))",
+        "stat-hunger": "hsl(var(--stat-hunger))",
+        "stat-happiness": "hsl(var(--stat-happiness))",
+        "stat-health": "hsl(var(--stat-health))",
+        "stat-hygiene": "hsl(var(--stat-hygiene))",
+        "stat-energy": "hsl(var(--stat-energy))",
+        coin: "hsl(var(--coin))",
+        xp: "hsl(var(--xp))",
+        sickness: "hsl(var(--sickness))",
+        critical: "hsl(var(--critical))",
+        discipline: "hsl(var(--discipline))",
+        "weather-sunny": "hsl(var(--weather-sunny))",
+        "weather-rainy": "hsl(var(--weather-rainy))",
+        "weather-cold": "hsl(var(--weather-cold))",
+        "weather-hot": "hsl(var(--weather-hot))",
+        "weather-storm": "hsl(var(--weather-storm))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +85,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
