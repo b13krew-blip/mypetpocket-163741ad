@@ -99,6 +99,9 @@ export interface PetState {
   misbehaviorAt: number | null;
   // Death cause
   deathCause: string;
+  // Play coin cap
+  playCoinsThisHour: number;
+  playCoinsHourStart: number;
 }
 
 interface PetActions {
@@ -194,6 +197,8 @@ const initialPet: PetState = {
   activeMisbehavior: null,
   misbehaviorAt: null,
   deathCause: '',
+  playCoinsThisHour: 0,
+  playCoinsHourStart: Date.now(),
 };
 
 function getStageForAge(ageMinutes: number): LifeStage {
@@ -302,7 +307,15 @@ export const usePetStore = create<PetState & PetActions>()(
       play: () => {
         const s = get();
         if (s.isDead || s.isSleeping || s.energy < 10) return;
-        const coinEarned = Math.floor(Math.random() * 10) + 5;
+        const now = Date.now();
+        // Reset hourly counter if an hour has passed
+        let playCoinsThisHour = s.playCoinsThisHour;
+        let playCoinsHourStart = s.playCoinsHourStart;
+        if (now - playCoinsHourStart > 3600000) {
+          playCoinsThisHour = 0;
+          playCoinsHourStart = now;
+        }
+        const coinEarned = playCoinsThisHour >= 30 ? 0 : Math.min(Math.floor(Math.random() * 10) + 5, 30 - playCoinsThisHour);
         const happinessGain = s.personality === 'athletic' ? 30 : 20;
         const energyCost = s.personality === 'athletic' ? 20 : 15;
         set({
@@ -311,6 +324,8 @@ export const usePetStore = create<PetState & PetActions>()(
           hunger: clamp(s.hunger - 5),
           bond: clamp(s.bond + 2),
           coins: s.coins + coinEarned,
+          playCoinsThisHour: playCoinsThisHour + coinEarned,
+          playCoinsHourStart,
         });
       },
 
