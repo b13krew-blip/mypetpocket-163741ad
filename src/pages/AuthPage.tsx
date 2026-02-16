@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 export default function AuthPage() {
@@ -8,7 +9,15 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/');
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +26,10 @@ export default function AuthPage() {
 
     if (isLogin) {
       const { error } = await signIn(email, password);
-      if (error) toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
+      if (error) {
+        toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
+      }
+      // Navigation happens automatically via useEffect when user state updates
     } else {
       const { error } = await signUp(email, password);
       if (error) {
@@ -28,6 +40,8 @@ export default function AuthPage() {
     }
     setLoading(false);
   };
+
+  if (!authLoading && user) return null;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
