@@ -8,6 +8,58 @@ export type Weather = 'sunny' | 'rainy' | 'cold' | 'hot' | 'storm';
 export type Personality = 'lazy' | 'picky_eater' | 'messy' | 'anxious' | 'athletic' | 'sensitive' | 'independent';
 export type CriticalEvent = 'choking' | 'escaped' | 'nightmare' | 'tantrum' | 'fever';
 export type MisbehaviorType = 'refuses_eat' | 'throws_toys' | 'runs_around' | 'wont_sleep';
+export type EvolutionTier = 'base' | 'good' | 'great' | 'ultimate';
+
+export interface EvolutionInfo {
+  tier: EvolutionTier;
+  name: string;
+  emoji: string;
+  aura: string;
+  requirement: string;
+}
+
+// Evolution is computed from bond, avg care stats, and personality alignment
+export function getEvolution(species: Species, stage: LifeStage, bond: number, avgStats: number, personality: Personality): EvolutionInfo {
+  if (stage === 'egg' || stage === 'baby') {
+    return EVOLUTION_DATA[species].base;
+  }
+  // Personality bonus: certain personalities get a boost if stats are managed well
+  const personalityBonus = (['athletic', 'sensitive', 'independent'].includes(personality) && avgStats > 60) ? 10 : 0;
+  const score = bond + (avgStats * 0.5) + personalityBonus;
+
+  if (score >= 120) return EVOLUTION_DATA[species].ultimate;
+  if (score >= 70) return EVOLUTION_DATA[species].great;
+  if (score >= 35) return EVOLUTION_DATA[species].good;
+  return EVOLUTION_DATA[species].base;
+}
+
+const EVOLUTION_DATA: Record<Species, Record<EvolutionTier, EvolutionInfo>> = {
+  meowchi: {
+    base: { tier: 'base', name: 'Meowchi', emoji: '🐱', aura: '', requirement: 'Starting form' },
+    good: { tier: 'good', name: 'Whiskerion', emoji: '😺', aura: '✨', requirement: 'Bond 20+ & decent care' },
+    great: { tier: 'great', name: 'Felionix', emoji: '🦁', aura: '🔥', requirement: 'Bond 50+ & great care' },
+    ultimate: { tier: 'ultimate', name: 'Celesticat', emoji: '🐈‍⬛', aura: '👑', requirement: 'Bond 80+ & perfect care' },
+  },
+  puppup: {
+    base: { tier: 'base', name: 'Puppup', emoji: '🐶', aura: '', requirement: 'Starting form' },
+    good: { tier: 'good', name: 'Barknight', emoji: '🐕', aura: '✨', requirement: 'Bond 20+ & decent care' },
+    great: { tier: 'great', name: 'Howlstorm', emoji: '🐺', aura: '⚡', requirement: 'Bond 50+ & great care' },
+    ultimate: { tier: 'ultimate', name: 'Aureowolf', emoji: '🦊', aura: '👑', requirement: 'Bond 80+ & perfect care' },
+  },
+  drakeling: {
+    base: { tier: 'base', name: 'Drakeling', emoji: '🐉', aura: '', requirement: 'Starting form' },
+    good: { tier: 'good', name: 'Wyvernscale', emoji: '🐲', aura: '✨', requirement: 'Bond 20+ & decent care' },
+    great: { tier: 'great', name: 'Infernax', emoji: '🔥', aura: '💎', requirement: 'Bond 50+ & great care' },
+    ultimate: { tier: 'ultimate', name: 'Celestidrake', emoji: '🌟', aura: '👑', requirement: 'Bond 80+ & perfect care' },
+  },
+};
+
+export const EVOLUTION_TIER_INFO: Record<EvolutionTier, { color: string; label: string }> = {
+  base: { color: 'text-muted-foreground', label: 'Base' },
+  good: { color: 'text-stat-happiness', label: 'Evolved' },
+  great: { color: 'text-primary', label: 'Rare' },
+  ultimate: { color: 'text-accent', label: 'Legendary' },
+};
 
 export interface PetState {
   name: string;
