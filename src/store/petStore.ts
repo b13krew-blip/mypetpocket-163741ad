@@ -76,14 +76,14 @@ const SPECIES_DATA: Record<Species, { emoji: string; name: string }> = {
 };
 
 export const FOOD_ITEMS = [
-  { id: 'bread', emoji: '🍞', name: 'Bread', hunger: 10, happiness: 0, health: 0, cost: 0, quality: 'basic' as const },
-  { id: 'milk', emoji: '🥛', name: 'Milk', hunger: 15, happiness: 5, health: 0, cost: 0, quality: 'basic' as const },
-  { id: 'apple', emoji: '🍎', name: 'Apple', hunger: 20, happiness: 0, health: 5, cost: 0, quality: 'basic' as const },
+  { id: 'bread', emoji: '🍞', name: 'Bread', hunger: 10, happiness: 0, health: 0, cost: 3, quality: 'basic' as const },
+  { id: 'milk', emoji: '🥛', name: 'Milk', hunger: 15, happiness: 5, health: 0, cost: 4, quality: 'basic' as const },
+  { id: 'apple', emoji: '🍎', name: 'Apple', hunger: 20, happiness: 0, health: 5, cost: 5, quality: 'basic' as const },
   { id: 'burger', emoji: '🍔', name: 'Burger', hunger: 40, happiness: 10, health: 0, cost: 15, quality: 'premium' as const },
   { id: 'pizza', emoji: '🍕', name: 'Pizza', hunger: 50, happiness: 15, health: 0, cost: 25, quality: 'premium' as const },
   { id: 'cake', emoji: '🍰', name: 'Cake', hunger: 30, happiness: 30, health: 0, cost: 30, quality: 'premium' as const },
   { id: 'sushi', emoji: '🍣', name: 'Sushi', hunger: 60, happiness: 20, health: 5, cost: 50, quality: 'premium' as const },
-  { id: 'candy', emoji: '🍬', name: 'Candy', hunger: 5, happiness: 15, health: -5, cost: 5, quality: 'basic' as const },
+  { id: 'candy', emoji: '🍬', name: 'Candy', hunger: 5, happiness: 15, health: -5, cost: 6, quality: 'basic' as const },
   { id: 'steak', emoji: '🥩', name: 'Steak', hunger: 70, happiness: 25, health: 10, cost: 80, quality: 'premium' as const },
   { id: 'salad', emoji: '🥗', name: 'Salad', hunger: 25, happiness: 5, health: 15, cost: 10, quality: 'premium' as const },
 ];

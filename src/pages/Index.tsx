@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePetStore, formatAge, WEATHER_INFO } from '@/store/petStore';
+import { useAuth } from '@/hooks/useAuth';
+import { usePetSync } from '@/hooks/usePetSync';
 import Header from '@/components/game/Header';
 import PetDisplay from '@/components/game/PetDisplay';
 import StatsBar from '@/components/game/StatsBar';
@@ -11,9 +13,16 @@ import { motion } from 'framer-motion';
 
 export default function Index() {
   const { adopted, isDead, reset, tick, stage, age, level, isSick, weather, deathCause, bond } = usePetStore();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  usePetSync();
 
   useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
     if (!adopted) {
       navigate('/adopt');
       return;
@@ -21,9 +30,9 @@ export default function Index() {
     tick();
     const interval = setInterval(tick, 10000);
     return () => clearInterval(interval);
-  }, [adopted, navigate, tick]);
+  }, [adopted, navigate, tick, user, loading]);
 
-  if (!adopted) return null;
+  if (loading || !user || !adopted) return null;
 
   const weatherInfo = WEATHER_INFO[weather];
 
