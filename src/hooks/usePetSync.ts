@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 
 const PET_STATE_KEYS: (keyof PetState)[] = [
   'name', 'species', 'stage', 'hunger', 'happiness', 'health', 'hygiene', 'energy',
-  'coins', 'level', 'xp', 'age', 'bond', 'poops', 'isSleeping', 'isDead', 'lastUpdate',
+  'coins', 'level', 'xp', 'age', 'bond', 'poops', 'isSleeping', 'isDead', 'lastUpdate', 'playCoinsThisHour', 'playCoinsHourStart',
   'createdAt', 'adopted', 'difficulty', 'isSick', 'sickSince', 'weather', 'weatherChangedAt',
   'personality', 'activeEvent', 'eventStartedAt', 'eventTaps', 'activeMisbehavior',
   'misbehaviorAt', 'deathCause',
