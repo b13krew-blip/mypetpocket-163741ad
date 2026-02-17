@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { usePetStore } from '@/store/petStore';
-import { toast } from '@/hooks/use-toast';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePetStore } from "@/store/petStore";
+import { toast } from "@/hooks/use-toast";
 
-interface Props { onBack: () => void; }
+interface Props {
+  onBack: () => void;
+}
 
 export default function CatchTheStarGame({ onBack }: Props) {
   const [score, setScore] = useState(0);
@@ -26,7 +28,7 @@ export default function CatchTheStarGame({ onBack }: Props) {
   useEffect(() => {
     if (gameOver) return;
     const t = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           setGameOver(true);
           clearInterval(t);
@@ -39,14 +41,14 @@ export default function CatchTheStarGame({ onBack }: Props) {
   }, [gameOver]);
 
   const handleCatch = () => {
-    setScore(s => s + 1);
+    setScore((s) => s + 1);
     setStarPos(null);
     setTimeout(spawnStar, 200);
   };
 
   const claimReward = () => {
     const coins = score * 3;
-    const xp = score * 5;
+    const xp = score * 4;
     usePetStore.getState().addCoins(coins);
     usePetStore.getState().addXp(xp);
     toast({ title: `⭐ Earned ${coins} coins & ${xp} XP!` });
@@ -91,7 +93,9 @@ export default function CatchTheStarGame({ onBack }: Props) {
             <span className="text-6xl">🏆</span>
             <h2 className="font-fredoka text-2xl font-bold text-foreground">Game Over!</h2>
             <p className="font-nunito text-muted-foreground">You caught {score} stars!</p>
-            <p className="font-nunito text-sm text-primary font-semibold">Reward: {score * 3} coins + {score * 5} XP</p>
+            <p className="font-nunito text-sm text-primary font-semibold">
+              Reward: {score * 3} coins + {score * 5} XP
+            </p>
             <div className="flex gap-3">
               <motion.button
                 className="px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-fredoka font-semibold"
