@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePetStore, getSpeciesData, PERSONALITY_INFO, getEvolution, EVOLUTION_TIER_INFO } from '@/store/petStore';
 import { useState, useEffect, useRef } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 const STAGE_EMOJIS: Record<string, Record<string, string>> = {
   meowchi: { egg: '🥚', baby: '🐱', child: '😺', teen: '😼', adult: '🐈', senior: '🐈‍⬛' },
@@ -22,11 +23,16 @@ const getMood = (hunger: number, happiness: number, health: number, energy: numb
 
 export default function PetDisplay() {
   const { species, stage, hunger, happiness, health, energy, hygiene, isSleeping, isDead, name, poops, isSick, personality, bond } = usePetStore();
+  const pet = usePetStore(s => s.pet);
+  const cleanPoop = usePetStore(s => s.cleanPoop);
   const speciesData = getSpeciesData(species);
   const personalityInfo = PERSONALITY_INFO[personality];
   const avgStats = (hunger + happiness + health + hygiene + energy) / 5;
   const evolution = getEvolution(species, stage, bond, avgStats, personality);
   const tierInfo = EVOLUTION_TIER_INFO[evolution.tier];
+
+  // Pet tap feedback
+  const [showHeart, setShowHeart] = useState(false);
 
   // Track evolution changes for animation
   const prevTier = useRef(evolution.tier);
@@ -49,6 +55,19 @@ export default function PetDisplay() {
 
   const mood = getMood(hunger, happiness, health, energy, isSick);
   const petSize = stage === 'egg' ? 'text-7xl' : stage === 'baby' ? 'text-8xl' : 'text-9xl';
+
+  const handlePetTap = () => {
+    if (isDead || isSleeping) return;
+    pet();
+    setShowHeart(true);
+    setTimeout(() => setShowHeart(false), 800);
+  };
+
+  const handlePoopTap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    cleanPoop();
+    toast({ title: '💩 Picked up poop!', description: '+3 XP' });
+  };
 
   return (
     <div className="relative flex flex-col items-center justify-center py-6 min-h-[280px]">
@@ -78,19 +97,21 @@ export default function PetDisplay() {
         )}
       </AnimatePresence>
 
-      {/* Poops */}
+      {/* Poops - tappable */}
       <AnimatePresence>
         {Array.from({ length: poops }).map((_, i) => (
-          <motion.div
+          <motion.button
             key={`poop-${i}`}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0 }}
-            className="absolute text-3xl"
+            className="absolute text-3xl cursor-pointer z-10 hover:scale-125 transition-transform"
             style={{ left: `${20 + i * 15}%`, bottom: '10%' }}
+            onClick={handlePoopTap}
+            whileTap={{ scale: 0.5 }}
           >
             💩
-          </motion.div>
+          </motion.button>
         ))}
       </AnimatePresence>
 
@@ -116,7 +137,22 @@ export default function PetDisplay() {
         </motion.div>
       )}
 
-      {/* Pet */}
+      {/* Heart on pet */}
+      <AnimatePresence>
+        {showHeart && (
+          <motion.div
+            className="absolute top-1/4 text-3xl pointer-events-none z-20"
+            initial={{ scale: 0, opacity: 1, y: 0 }}
+            animate={{ scale: 1.5, opacity: 0, y: -40 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            ❤️
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pet - tappable to pet */}
       <motion.div
         className={`${petSize} select-none cursor-pointer`}
         animate={
@@ -135,6 +171,7 @@ export default function PetDisplay() {
           repeat: Infinity,
           ease: 'easeInOut',
         }}
+        onClick={handlePetTap}
         whileTap={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
       >
         {petEmoji}

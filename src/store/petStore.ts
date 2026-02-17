@@ -112,6 +112,8 @@ interface PetActions {
   sleep: () => void;
   wake: () => void;
   heal: () => void;
+  pet: () => void;
+  cleanPoop: () => void;
   tick: () => void;
   addCoins: (amount: number) => void;
   addXp: (amount: number) => void;
@@ -293,23 +295,24 @@ export const usePetStore = create<PetState & PetActions>()(
           set({ happiness: clamp(s.happiness - 5) });
           return;
         }
+        // Deduct coins atomically
+        if (!get().spendCoins(food.cost)) return;
         // Sick pet gets less from food
         const sickPenalty = s.isSick ? 0.5 : 1;
         const xpGain = Math.ceil(food.cost / 5);
-        let newXp = s.xp + xpGain;
-        let newLevel = s.level;
+        let newXp = get().xp + xpGain;
+        let newLevel = get().level;
         const xpNeeded = newLevel * 50;
         if (newXp >= xpNeeded) {
           newXp -= xpNeeded;
           newLevel++;
         }
         set({
-          hunger: clamp(s.hunger + food.hunger * sickPenalty),
-          happiness: clamp(s.happiness + food.happiness * sickPenalty),
-          health: clamp(s.health + food.health),
-          energy: clamp(s.energy - 2),
-          coins: s.coins - food.cost,
-          bond: clamp(s.bond + 1),
+          hunger: clamp(get().hunger + food.hunger * sickPenalty),
+          happiness: clamp(get().happiness + food.happiness * sickPenalty),
+          health: clamp(get().health + food.health),
+          energy: clamp(get().energy - 2),
+          bond: clamp(get().bond + 1),
           xp: newXp,
           level: newLevel,
         });
@@ -361,6 +364,34 @@ export const usePetStore = create<PetState & PetActions>()(
         });
       },
 
+      pet: () => {
+        const s = get();
+        if (s.isDead || s.isSleeping) return;
+        set({
+          happiness: clamp(s.happiness + 3),
+          bond: clamp(s.bond + 1),
+        });
+      },
+
+      cleanPoop: () => {
+        const s = get();
+        if (s.isDead || s.poops <= 0) return;
+        const xpGain = 3;
+        let newXp = s.xp + xpGain;
+        let newLevel = s.level;
+        const xpNeeded = newLevel * 50;
+        if (newXp >= xpNeeded) {
+          newXp -= xpNeeded;
+          newLevel++;
+        }
+        set({
+          poops: s.poops - 1,
+          hygiene: clamp(s.hygiene + 5),
+          xp: newXp,
+          level: newLevel,
+        });
+      },
+
       sleep: () => {
         const s = get();
         if (s.isDead) return;
@@ -374,11 +405,10 @@ export const usePetStore = create<PetState & PetActions>()(
         if (s.isDead) return;
         const baseCost = 20;
         const cost = s.stage === 'senior' ? baseCost * 2 : baseCost;
-        if (s.coins < cost) return;
+        if (!get().spendCoins(cost)) return;
         set({
           health: clamp(s.health + 40),
           happiness: clamp(s.happiness - 10),
-          coins: s.coins - cost,
           isSick: false,
           sickSince: null,
         });

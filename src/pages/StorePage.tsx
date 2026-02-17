@@ -30,8 +30,13 @@ export default function StorePage() {
   const navigate = useNavigate();
 
   const buyItem = async (item: StoreItem) => {
-    const store = usePetStore.getState();
-    if (!store.spendCoins(item.cost)) {
+    // Re-check coins at action time (motion.button disabled can be bypassed)
+    const currentCoins = usePetStore.getState().coins;
+    if (currentCoins < item.cost) {
+      toast({ title: 'Not enough coins!', variant: 'destructive' });
+      return;
+    }
+    if (!usePetStore.getState().spendCoins(item.cost)) {
       toast({ title: 'Not enough coins!', variant: 'destructive' });
       return;
     }
@@ -75,7 +80,7 @@ export default function StorePage() {
               key={item.id}
               className={`game-card p-4 flex flex-col items-center gap-2 transition-all
                 ${canAfford ? 'hover:bg-muted/50' : 'opacity-50 cursor-not-allowed'}`}
-              onClick={() => canAfford && buyItem(item)}
+              onClick={() => buyItem(item)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
