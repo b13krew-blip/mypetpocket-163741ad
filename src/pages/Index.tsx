@@ -12,10 +12,20 @@ import DisciplineOverlay from '@/components/game/DisciplineOverlay';
 import { motion } from 'framer-motion';
 
 export default function Index() {
-  const { adopted, isDead, reset, tick, stage, age, level, isSick, weather, deathCause, bond } = usePetStore();
+  const { adopted, isDead, reset, tick, stage, age, level, isSick, weather, deathCause, bond, isSleeping } = usePetStore();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   usePetSync();
+
+  // Toggle dark mode when pet is sleeping (night time)
+  useEffect(() => {
+    if (isSleeping) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    return () => document.documentElement.classList.remove('dark');
+  }, [isSleeping]);
 
   useEffect(() => {
     if (loading) return;
@@ -62,12 +72,23 @@ export default function Index() {
       )}
 
       {/* Pet area */}
-      <div className="flex-1 bg-pet-bg rounded-3xl mx-3 mt-2 mb-3 relative overflow-hidden">
-        <div className="absolute top-4 left-4 text-2xl opacity-20">🌿</div>
-        <div className="absolute top-6 right-6 text-xl opacity-20">
-          {weatherInfo.emoji}
-        </div>
-        <div className="absolute bottom-4 right-4 text-xl opacity-20">🌸</div>
+      <div className={`flex-1 rounded-3xl mx-3 mt-2 mb-3 relative overflow-hidden transition-colors duration-700 ${isSleeping ? 'bg-[hsl(230,25%,12%)]' : 'bg-pet-bg'}`}>
+        {isSleeping ? (
+          <>
+            <div className="absolute top-4 left-6 text-2xl opacity-40">🌙</div>
+            <div className="absolute top-6 right-8 text-sm opacity-30">⭐</div>
+            <div className="absolute top-12 left-1/3 text-xs opacity-20">✨</div>
+            <div className="absolute bottom-8 right-6 text-sm opacity-25">⭐</div>
+          </>
+        ) : (
+          <>
+            <div className="absolute top-4 left-4 text-2xl opacity-20">🌿</div>
+            <div className="absolute top-6 right-6 text-xl opacity-20">
+              {weatherInfo.emoji}
+            </div>
+            <div className="absolute bottom-4 right-4 text-xl opacity-20">🌸</div>
+          </>
+        )}
 
         <PetDisplay />
       </div>
