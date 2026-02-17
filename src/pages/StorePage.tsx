@@ -31,12 +31,10 @@ export default function StorePage() {
 
   const buyItem = async (item: StoreItem) => {
     const store = usePetStore.getState();
-    if (store.coins < item.cost) {
+    if (!store.spendCoins(item.cost)) {
       toast({ title: 'Not enough coins!', variant: 'destructive' });
       return;
     }
-    // Deduct coins
-    usePetStore.setState({ coins: store.coins - item.cost });
 
     // Add to inventory in DB
     if (user) {

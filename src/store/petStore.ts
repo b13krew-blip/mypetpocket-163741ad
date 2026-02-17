@@ -115,6 +115,7 @@ interface PetActions {
   tick: () => void;
   addCoins: (amount: number) => void;
   addXp: (amount: number) => void;
+  spendCoins: (amount: number) => boolean;
   reset: () => void;
   // Critical event responses
   tapEvent: () => void;
@@ -294,6 +295,14 @@ export const usePetStore = create<PetState & PetActions>()(
         }
         // Sick pet gets less from food
         const sickPenalty = s.isSick ? 0.5 : 1;
+        const xpGain = Math.ceil(food.cost / 5);
+        let newXp = s.xp + xpGain;
+        let newLevel = s.level;
+        const xpNeeded = newLevel * 50;
+        if (newXp >= xpNeeded) {
+          newXp -= xpNeeded;
+          newLevel++;
+        }
         set({
           hunger: clamp(s.hunger + food.hunger * sickPenalty),
           happiness: clamp(s.happiness + food.happiness * sickPenalty),
@@ -301,6 +310,8 @@ export const usePetStore = create<PetState & PetActions>()(
           energy: clamp(s.energy - 2),
           coins: s.coins - food.cost,
           bond: clamp(s.bond + 1),
+          xp: newXp,
+          level: newLevel,
         });
       },
 
@@ -318,6 +329,14 @@ export const usePetStore = create<PetState & PetActions>()(
         const coinEarned = playCoinsThisHour >= 30 ? 0 : Math.min(Math.floor(Math.random() * 10) + 5, 30 - playCoinsThisHour);
         const happinessGain = s.personality === 'athletic' ? 30 : 20;
         const energyCost = s.personality === 'athletic' ? 20 : 15;
+        const xpGain = 5;
+        let newXp = s.xp + xpGain;
+        let newLevel = s.level;
+        const xpNeeded = newLevel * 50;
+        if (newXp >= xpNeeded) {
+          newXp -= xpNeeded;
+          newLevel++;
+        }
         set({
           happiness: clamp(s.happiness + happinessGain),
           energy: clamp(s.energy - energyCost),
@@ -326,6 +345,8 @@ export const usePetStore = create<PetState & PetActions>()(
           coins: s.coins + coinEarned,
           playCoinsThisHour: playCoinsThisHour + coinEarned,
           playCoinsHourStart,
+          xp: newXp,
+          level: newLevel,
         });
       },
 
@@ -364,6 +385,12 @@ export const usePetStore = create<PetState & PetActions>()(
       },
 
       addCoins: (amount) => set(s => ({ coins: s.coins + amount })),
+      spendCoins: (amount) => {
+        const s = get();
+        if (s.coins < amount) return false;
+        set({ coins: s.coins - amount });
+        return true;
+      },
       addXp: (amount) => {
         const s = get();
         let newXp = s.xp + amount;
