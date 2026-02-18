@@ -9,6 +9,7 @@ import AdoptPage from "./pages/AdoptPage";
 import AuthPage from "./pages/AuthPage";
 import StorePage from "./pages/StorePage";
 import MinigamesPage from "./pages/MinigamesPage";
+import MemorialPage from "./pages/MemorialPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/minigames" element={<MinigamesPage />} />
+            <Route path="/memorial" element={<MemorialPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

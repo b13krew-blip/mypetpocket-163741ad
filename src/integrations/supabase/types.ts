@@ -38,6 +38,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_memorials: {
+        Row: {
+          age_minutes: number
+          bond: number
+          created_at: string
+          death_cause: string
+          died_at: string
+          difficulty: string
+          evolution_name: string
+          evolution_tier: string
+          id: string
+          level: number
+          name: string
+          personality: string
+          species: string
+          stage: string
+          user_id: string
+        }
+        Insert: {
+          age_minutes?: number
+          bond?: number
+          created_at?: string
+          death_cause?: string
+          died_at?: string
+          difficulty?: string
+          evolution_name?: string
+          evolution_tier?: string
+          id?: string
+          level?: number
+          name: string
+          personality: string
+          species: string
+          stage?: string
+          user_id: string
+        }
+        Update: {
+          age_minutes?: number
+          bond?: number
+          created_at?: string
+          death_cause?: string
+          died_at?: string
+          difficulty?: string
+          evolution_name?: string
+          evolution_tier?: string
+          id?: string
+          level?: number
+          name?: string
+          personality?: string
+          species?: string
+          stage?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pet_saves: {
         Row: {
           created_at: string
