@@ -16,7 +16,7 @@ interface PetChatModalProps {
 }
 
 export default function PetChatModal({ open, onClose }: PetChatModalProps) {
-  const { name, species, stage, hunger, happiness, health, energy, isSleeping, isSick, weather, personality, bond, age } = usePetStore();
+  const { name, species, stage, hunger, happiness, health, energy, isSleeping, isSick, weather, personality, bond, age, petLanguage } = usePetStore();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -24,7 +24,7 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
   const [initialized, setInitialized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const petContext = { name, species, stage, hunger, happiness, health, energy, isSleeping, isSick, weather, personality, bond, age };
+  const petContext = { name, species, stage, hunger, happiness, health, energy, isSleeping, isSick, weather, personality, bond, age, petLanguage };
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }), 50);

@@ -9,7 +9,7 @@ const PET_STATE_KEYS: (keyof PetState)[] = [
   'coins', 'level', 'xp', 'age', 'bond', 'poops', 'isSleeping', 'isDead', 'lastUpdate', 'playCoinsThisHour', 'playCoinsHourStart',
   'createdAt', 'adopted', 'difficulty', 'isSick', 'sickSince', 'weather', 'weatherChangedAt',
   'personality', 'activeEvent', 'eventStartedAt', 'eventTaps', 'activeMisbehavior',
-  'misbehaviorAt', 'deathCause',
+  'misbehaviorAt', 'deathCause', 'petLanguage',
 ];
 
 function extractPetState(store: any): Partial<PetState> {

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { usePetStore, getSpeciesData, PERSONALITY_INFO, formatAge, getEvolution, EVOLUTION_TIER_INFO, EvolutionTier } from '@/store/petStore';
+import { usePetStore, getSpeciesData, PERSONALITY_INFO, formatAge, getEvolution, EVOLUTION_TIER_INFO, EvolutionTier, PET_LANGUAGES, PetLanguage } from '@/store/petStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -8,7 +8,7 @@ import { useState } from 'react';
 interface Props { open: boolean; onClose: () => void; }
 
 export default function SettingsModal({ open, onClose }: Props) {
-  const { name, species, stage, age, personality, difficulty, level, bond, reset, hunger, happiness, health, hygiene, energy } = usePetStore();
+  const { name, species, stage, age, personality, difficulty, level, bond, reset, hunger, happiness, health, hygiene, energy, petLanguage, setPetLanguage } = usePetStore();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -84,6 +84,20 @@ export default function SettingsModal({ open, onClose }: Props) {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Pet Language */}
+            <div className="mb-3">
+              <label className="font-fredoka text-xs font-semibold text-foreground mb-1 block">🌐 Pet Language</label>
+              <select
+                value={petLanguage}
+                onChange={e => setPetLanguage(e.target.value as PetLanguage)}
+                className="w-full py-2 px-3 rounded-2xl bg-muted text-foreground text-sm font-nunito outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                {Object.entries(PET_LANGUAGES).map(([code, label]) => (
+                  <option key={code} value={code}>{label}</option>
+                ))}
+              </select>
             </div>
 
             {/* Sound toggle */}

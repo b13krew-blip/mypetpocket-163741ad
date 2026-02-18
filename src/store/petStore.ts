@@ -61,6 +61,22 @@ export const EVOLUTION_TIER_INFO: Record<EvolutionTier, { color: string; label: 
   ultimate: { color: 'text-accent', label: 'Legendary' },
 };
 
+export type PetLanguage = 'en' | 'es' | 'fr' | 'de' | 'pt' | 'ja' | 'ko' | 'zh' | 'ar' | 'hi' | 'tr';
+
+export const PET_LANGUAGES: Record<PetLanguage, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  pt: 'Português',
+  ja: '日本語',
+  ko: '한국어',
+  zh: '中文',
+  ar: 'العربية',
+  hi: 'हिन्दी',
+  tr: 'Türkçe',
+};
+
 export interface PetState {
   name: string;
   species: Species;
@@ -102,6 +118,8 @@ export interface PetState {
   // Play coin cap
   playCoinsThisHour: number;
   playCoinsHourStart: number;
+  // Language
+  petLanguage: PetLanguage;
 }
 
 interface PetActions {
@@ -125,6 +143,8 @@ interface PetActions {
   dismissEvent: () => void;
   // Discipline
   discipline: (response: 'scold' | 'praise' | 'ignore') => void;
+  // Language
+  setPetLanguage: (lang: PetLanguage) => void;
 }
 
 const SPECIES_DATA: Record<Species, { emoji: string; name: string }> = {
@@ -202,6 +222,7 @@ const initialPet: PetState = {
   deathCause: '',
   playCoinsThisHour: 0,
   playCoinsHourStart: Date.now(),
+  petLanguage: 'en',
 };
 
 function getStageForAge(ageMinutes: number): LifeStage {
@@ -507,6 +528,8 @@ export const usePetStore = create<PetState & PetActions>()(
         }
         set(updates);
       },
+
+      setPetLanguage: (lang) => set({ petLanguage: lang }),
 
       tick: () => {
         const s = get();

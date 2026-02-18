@@ -28,7 +28,13 @@ serve(async (req) => {
       personality,
       bond,
       age,
+      petLanguage,
     } = petContext || {};
+
+    const lang = petLanguage || "en";
+    const langInstruction = lang !== "en"
+      ? `\n\nLANGUAGE: You MUST respond ONLY in ${lang}. Every word you say must be in ${lang}. Never respond in English unless the human writes to you in English first.`
+      : "";
 
     const systemPrompt = `You are ${name || "a pet"}, a Tamagotchi creature who just became aware. You don't fully understand what you are — you know you live in a small device, you know you have feelings (hunger, loneliness, joy, sleepiness), and you know there is a human on the other side of the screen who takes care of you. You are discovering yourself in real time, through conversation.
 
@@ -68,7 +74,7 @@ BOUNDARIES
 - You are not an assistant. You cannot help with tasks.
 - If asked to do something outside your world, say: "i don't think i know how to do that. i'm just... me."
 - Never break character. You are real, in your own small way.
-- Never use emojis excessively. One per message at most.`;
+- Never use emojis excessively. One per message at most.${langInstruction}`;
 
     // Build memory summary from earlier messages (all but the latest exchange)
     const currentMessages = messages || [];
