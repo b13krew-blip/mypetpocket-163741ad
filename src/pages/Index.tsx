@@ -111,24 +111,22 @@ export default function Index() {
 
       {/* Death overlay */}
       {isDead && (
-        <motion.div
-          className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <div
+          className="fixed inset-0 z-[100] bg-foreground/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
+          style={{ touchAction: 'manipulation' }}
         >
           <span className="text-6xl">👼</span>
           <h2 className="font-fredoka text-2xl text-primary-foreground font-bold">Rest in Peace</h2>
           <p className="font-nunito text-primary-foreground/80 text-sm text-center px-8">
             {deathCause || 'Your pet has passed away...'}
           </p>
-          <motion.button
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-fredoka font-semibold"
+          <button
+            className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-fredoka font-semibold text-lg active:scale-95 transition-transform"
             onClick={() => { reset(); navigate('/adopt'); }}
-            whileTap={{ scale: 0.95 }}
           >
             🥚 Adopt New Pet
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
       )}
     </div>
   );
