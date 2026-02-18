@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePetStore } from '@/store/petStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send } from 'lucide-react';
+import { X, Send, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -15,6 +17,7 @@ interface PetChatModalProps {
 
 export default function PetChatModal({ open, onClose }: PetChatModalProps) {
   const { name, species, stage, hunger, happiness, health, energy, isSleeping, isSick, weather, personality, bond, age } = usePetStore();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,8 +30,13 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
     setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }), 50);
   }, []);
 
+  const saveMessage = useCallback(async (role: 'user' | 'assistant', content: string) => {
+    if (!user) return;
+    await supabase.from('chat_messages').insert({ user_id: user.id, role, content });
+  }, [user]);
+
   // Stream helper
-  const streamChat = useCallback(async (msgs: Msg[], onDelta: (t: string) => void, onDone: () => void) => {
+  const streamChat = useCallback(async (msgs: Msg[], onDelta: (t: string) => void, onDone: (full: string) => void) => {
     const resp = await fetch(CHAT_URL, {
       method: 'POST',
       headers: {
@@ -47,6 +55,7 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
+    let full = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -60,43 +69,76 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
         if (line.endsWith('\r')) line = line.slice(0, -1);
         if (!line.startsWith('data: ')) continue;
         const json = line.slice(6).trim();
-        if (json === '[DONE]') { onDone(); return; }
+        if (json === '[DONE]') { onDone(full); return; }
         try {
           const parsed = JSON.parse(json);
           const content = parsed.choices?.[0]?.delta?.content;
-          if (content) onDelta(content);
+          if (content) { full += content; onDelta(content); }
         } catch { /* partial */ }
       }
     }
-    onDone();
+    onDone(full);
   }, [petContext]);
 
-  // Get opening message when chat opens
+  // Load past messages and optionally get opening line
   useEffect(() => {
     if (!open || initialized) return;
     setInitialized(true);
     setIsLoading(true);
 
-    let assistantSoFar = '';
-    const update = (chunk: string) => {
-      assistantSoFar += chunk;
-      setMessages([{ role: 'assistant', content: assistantSoFar }]);
-      scrollToBottom();
+    const init = async () => {
+      // Load persisted messages (last 50)
+      if (user) {
+        const { data } = await supabase
+          .from('chat_messages')
+          .select('role, content')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(50);
+
+        if (data && data.length > 0) {
+          setMessages(data as Msg[]);
+          setIsLoading(false);
+          scrollToBottom();
+          return;
+        }
+      }
+
+      // No history — get opening line
+      let assistantSoFar = '';
+      const update = (chunk: string) => {
+        assistantSoFar += chunk;
+        setMessages([{ role: 'assistant', content: assistantSoFar }]);
+        scrollToBottom();
+      };
+
+      try {
+        await streamChat([], update, (full) => {
+          setIsLoading(false);
+          saveMessage('assistant', full);
+        });
+      } catch (e: any) {
+        console.error(e);
+        toast({ title: '💬 Chat error', description: e.message, variant: 'destructive' });
+        setIsLoading(false);
+      }
     };
 
-    streamChat([], update, () => setIsLoading(false)).catch(e => {
-      console.error(e);
-      toast({ title: '💬 Chat error', description: e.message, variant: 'destructive' });
-      setIsLoading(false);
-    });
-  }, [open, initialized, streamChat, scrollToBottom]);
+    init();
+  }, [open, initialized, streamChat, scrollToBottom, user, saveMessage]);
 
-  // Reset on close
   const handleClose = () => {
     setMessages([]);
     setInitialized(false);
     setInput('');
     onClose();
+  };
+
+  const clearHistory = async () => {
+    if (!user) return;
+    await supabase.from('chat_messages').delete().eq('user_id', user.id);
+    setMessages([]);
+    toast({ title: '🗑️ Chat cleared', description: `${name} will start fresh next time.` });
   };
 
   const send = async () => {
@@ -108,6 +150,7 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
     setMessages(newMsgs);
     scrollToBottom();
     setIsLoading(true);
+    saveMessage('user', text);
 
     let assistantSoFar = '';
     const upsert = (chunk: string) => {
@@ -123,7 +166,10 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
     };
 
     try {
-      await streamChat(newMsgs, upsert, () => setIsLoading(false));
+      await streamChat(newMsgs, upsert, (full) => {
+        setIsLoading(false);
+        saveMessage('assistant', full);
+      });
     } catch (e: any) {
       console.error(e);
       toast({ title: '💬 Chat error', description: e.message, variant: 'destructive' });
@@ -157,9 +203,16 @@ export default function PetChatModal({ open, onClose }: PetChatModalProps) {
               <span className="text-lg">💬</span>
               <h2 className="font-fredoka text-base font-bold text-foreground">Chat with {name}</h2>
             </div>
-            <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <button onClick={clearHistory} className="p-1.5 rounded-full hover:bg-muted" title="Clear chat history">
+                  <Trash2 className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+              <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted">
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
