@@ -1,12 +1,14 @@
 import { usePetStore, WEATHER_INFO } from '@/store/petStore';
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SettingsModal from './SettingsModal';
 
 export default function Header() {
   const { coins, level, xp, weather } = usePetStore();
   const weatherInfo = WEATHER_INFO[weather];
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const navigate = useNavigate();
   const xpNeeded = level * 50;
   const xpPercent = Math.min(100, (xp / xpNeeded) * 100);
 
@@ -34,6 +36,13 @@ export default function Header() {
           <span className="px-2 py-1 rounded-full bg-coin/20 text-accent-foreground">
             💰 {coins}
           </span>
+          <button
+            onClick={() => navigate('/memorial')}
+            className="p-1.5 rounded-full hover:bg-muted"
+            title="Pet Memorial"
+          >
+            <span className="text-sm">🪦</span>
+          </button>
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-1.5 rounded-full hover:bg-muted"

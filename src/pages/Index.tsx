@@ -9,6 +9,7 @@ import StatsBar from '@/components/game/StatsBar';
 import ActionButtons from '@/components/game/ActionButtons';
 import CriticalEventOverlay from '@/components/game/CriticalEventOverlay';
 import DisciplineOverlay from '@/components/game/DisciplineOverlay';
+import { useMemorialSave } from '@/hooks/useMemorialSave';
 import { motion } from 'framer-motion';
 
 export default function Index() {
@@ -16,6 +17,7 @@ export default function Index() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   usePetSync();
+  useMemorialSave();
 
   // Toggle dark mode when pet is sleeping (night time)
   useEffect(() => {
