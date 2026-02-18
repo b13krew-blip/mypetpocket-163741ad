@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FeedModal from './FeedModal';
 import InventoryModal from './InventoryModal';
+import PetChatModal from './PetChatModal';
 import { toast } from '@/hooks/use-toast';
 
 const ACTIONS = [
@@ -15,6 +16,7 @@ const ACTIONS = [
 ];
 
 const NAV_BUTTONS = [
+  { id: 'chat', emoji: '💬', label: 'Chat' },
   { id: 'store', emoji: '🛒', label: 'Store' },
   { id: 'inventory', emoji: '🎒', label: 'Items' },
   { id: 'minigames', emoji: '🕹️', label: 'Games' },
@@ -24,6 +26,7 @@ export default function ActionButtons() {
   const { play, clean, sleep, wake, heal, isSleeping, isDead, stage } = usePetStore();
   const [feedOpen, setFeedOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleAction = (id: string) => {
@@ -55,6 +58,7 @@ export default function ActionButtons() {
   };
 
   const handleNav = (id: string) => {
+    if (id === 'chat') setChatOpen(true);
     if (id === 'store') navigate('/store');
     if (id === 'inventory') setInventoryOpen(true);
     if (id === 'minigames') navigate('/minigames');
@@ -103,6 +107,7 @@ export default function ActionButtons() {
 
       <FeedModal open={feedOpen} onClose={() => setFeedOpen(false)} />
       <InventoryModal open={inventoryOpen} onClose={() => setInventoryOpen(false)} />
+      <PetChatModal open={chatOpen} onClose={() => setChatOpen(false)} />
     </>
   );
 }
