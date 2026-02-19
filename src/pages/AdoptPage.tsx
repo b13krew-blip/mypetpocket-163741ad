@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePetStore, Species, Difficulty, PERSONALITY_INFO, Personality } from '@/store/petStore';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { usePetSync } from '@/hooks/usePetSync';
 
 const SPECIES = [
   { id: 'meowchi' as Species, emoji: '🐱', name: 'Meowchi', desc: 'Independent & playful', trait: '9 lives!' },
@@ -24,14 +25,23 @@ export default function AdoptPage() {
   const [petName, setPetName] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const adopt = usePetStore((s) => s.adopt);
+  const adopted = usePetStore((s) => s.adopted);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { synced } = usePetSync();
 
-  // Redirect to auth if not logged in
-  if (!loading && !user) {
-    navigate('/auth');
-    return null;
-  }
+  // Redirect to auth if not logged in, or to home if already has a pet
+  useEffect(() => {
+    if (loading || !synced) return;
+    if (!user) {
+      navigate('/auth');
+    } else if (adopted) {
+      navigate('/');
+    }
+  }, [loading, synced, user, adopted, navigate]);
+
+  if (loading || !synced) return null;
+  if (!user || adopted) return null;
 
   const handleAdopt = () => {
     if (!selected || !petName.trim()) return;

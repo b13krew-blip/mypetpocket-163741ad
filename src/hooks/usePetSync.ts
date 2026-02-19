@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePetStore, PetState } from '@/store/petStore';
 import { useAuth } from './useAuth';
@@ -24,6 +24,7 @@ export function usePetSync() {
   const { user } = useAuth();
   const loaded = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setInterval>>();
+  const [synced, setSynced] = useState(false);
 
   // Load pet data from cloud on login
   useEffect(() => {
@@ -31,34 +32,38 @@ export function usePetSync() {
     loaded.current = true;
 
     const load = async () => {
-      const { data } = await supabase
-        .from('pet_saves')
-        .select('pet_data')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from('pet_saves')
+          .select('pet_data')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      if (data?.pet_data && typeof data.pet_data === 'object') {
-        const petData = data.pet_data as Record<string, any>;
-        if (petData.adopted) {
-          usePetStore.setState(petData as any);
+        if (data?.pet_data && typeof data.pet_data === 'object') {
+          const petData = data.pet_data as Record<string, any>;
+          if (petData.adopted) {
+            usePetStore.setState(petData as any);
+          }
         }
-      }
 
-      // Daily bonus check
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('last_daily_bonus')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        // Daily bonus check
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('last_daily_bonus')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      const lastBonus = profile?.last_daily_bonus ? new Date(profile.last_daily_bonus) : null;
-      const now = new Date();
-      const isNewDay = !lastBonus || lastBonus.toDateString() !== now.toDateString();
+        const lastBonus = profile?.last_daily_bonus ? new Date(profile.last_daily_bonus) : null;
+        const now = new Date();
+        const isNewDay = !lastBonus || lastBonus.toDateString() !== now.toDateString();
 
-      if (isNewDay) {
-        usePetStore.getState().addCoins(50);
-        await supabase.from('profiles').update({ last_daily_bonus: now.toISOString() }).eq('user_id', user.id);
-        toast({ title: '🎁 Daily Bonus!', description: '+50 coins for logging in today!' });
+        if (isNewDay) {
+          usePetStore.getState().addCoins(50);
+          await supabase.from('profiles').update({ last_daily_bonus: now.toISOString() }).eq('user_id', user.id);
+          toast({ title: '🎁 Daily Bonus!', description: '+50 coins for logging in today!' });
+        }
+      } finally {
+        setSynced(true);
       }
     };
 
@@ -77,6 +82,12 @@ export function usePetSync() {
     );
   }, [user]);
 
+  // Clear cloud save (used on pet reset/death)
+  const clearCloudSave = useCallback(async () => {
+    if (!user) return;
+    await supabase.from('pet_saves').delete().eq('user_id', user.id);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     saveTimer.current = setInterval(save, 30000);
@@ -90,5 +101,5 @@ export function usePetSync() {
     };
   }, [user, save]);
 
-  return { save };
+  return { save, synced, clearCloudSave };
 }
