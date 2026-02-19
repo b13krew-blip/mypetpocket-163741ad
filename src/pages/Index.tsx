@@ -16,7 +16,7 @@ export default function Index() {
   const { adopted, isDead, reset, tick, stage, age, level, isSick, weather, deathCause, bond, isSleeping } = usePetStore();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  usePetSync();
+  const { synced, clearCloudSave } = usePetSync();
   useMemorialSave();
 
   // Toggle dark mode when pet is sleeping (night time)
@@ -30,7 +30,7 @@ export default function Index() {
   }, [isSleeping]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !synced) return;
     if (!user) {
       navigate('/auth');
       return;
@@ -42,9 +42,9 @@ export default function Index() {
     tick();
     const interval = setInterval(tick, 10000);
     return () => clearInterval(interval);
-  }, [adopted, navigate, tick, user, loading]);
+  }, [adopted, navigate, tick, user, loading, synced]);
 
-  if (loading || !user || !adopted) return null;
+  if (loading || !user || !synced || !adopted) return null;
 
   const weatherInfo = WEATHER_INFO[weather];
 
@@ -124,7 +124,7 @@ export default function Index() {
           </p>
           <button
             className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-fredoka font-semibold text-lg active:scale-95 transition-transform"
-            onClick={() => { reset(); navigate('/adopt'); }}
+            onClick={async () => { reset(); await clearCloudSave(); navigate('/adopt'); }}
           >
             🥚 Adopt New Pet
           </button>
